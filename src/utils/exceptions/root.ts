@@ -17,6 +17,12 @@ export class HttpException extends Error {
     this.errorCode = errorCode;
     this.statusCode = statusCode;
     this.errors = errors;
+
+    // Ensure the name is correctly set to the subclass name
+    this.name = this.constructor.name;
+
+    // Correct the prototype chain manually
+    Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 

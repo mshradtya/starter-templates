@@ -1,21 +1,18 @@
 import { Router, Request, Response, NextFunction } from "express";
 import Controller from "@/utils/interfaces/controller.interface";
-import { BadRequestsException } from "@/utils/exceptions/bad-request.exception";
 import { ErrorCode } from "@/utils/exceptions/root";
-import prismaClient from "@/utils/prisma";
-import { compareSync, hashSync } from "bcrypt";
 import { validateSchema } from "@/middleware/validation.middleware";
 import { LoginSchema, RegisterUserSchema } from "./user.validation";
-import { NotFoundException } from "@/utils/exceptions/not-found.exception";
-import * as jwt from "jsonwebtoken";
-import { JWT_SECRET } from "@/utils/secrets";
 import { AuthenticatedRequest } from "@/utils/interfaces/authenticated-req.interface";
 import { authMiddleware } from "@/middleware/auth.middleware";
 import { errorHandler } from "@/utils/error-handler";
+import UserService from "./user.service";
+import { UnauthorizedException } from "@/utils/exceptions/unauthorized.exception";
 
 class UserController implements Controller {
   public path = "/users";
   public router = Router();
+  private UserService = new UserService();
 
   constructor() {
     this.initialiseRoutes();
@@ -34,6 +31,8 @@ class UserController implements Controller {
       errorHandler(this.loginUser)
     );
 
+    this.router.get(`${this.path}/refresh`, errorHandler(this.refresh));
+
     this.router.get(
       `${this.path}/me`,
       [authMiddleware],
@@ -46,19 +45,15 @@ class UserController implements Controller {
     res: Response,
     next: NextFunction
   ): Promise<Response | void> => {
-    const { email, password, name } = req.body;
+    const { email, password, name, role } = req.body;
 
-    let user = await prismaClient.user.findFirst({ where: { email } });
-    if (user) {
-      throw new BadRequestsException(
-        "User Already Exists",
-        ErrorCode.USER_ALREADY_EXISTS
-      );
-    }
+    const user = await this.UserService.registerUser(
+      name,
+      email,
+      password,
+      role
+    );
 
-    user = await prismaClient.user.create({
-      data: { name, email, password: hashSync(password, 10) },
-    });
     res.json({ user });
   };
 
@@ -68,26 +63,31 @@ class UserController implements Controller {
   ): Promise<Response | void> => {
     const { email, password } = req.body;
 
-    let user = await prismaClient.user.findFirst({ where: { email } });
-    if (!user) {
-      throw new NotFoundException("User Not Found", ErrorCode.USER_NOT_FOUND);
+    const { id, name, role, accessToken, refreshToken } =
+      await this.UserService.loginUser(email, password);
+
+    res.cookie("jwt", refreshToken, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.json({ id, name, role, accessToken });
+  };
+
+  private refresh = async (
+    req: Request,
+    res: Response
+  ): Promise<Response | void> => {
+    const cookies = req.cookies;
+    if (!cookies?.jwt) {
+      throw new UnauthorizedException("Unauthorized", ErrorCode.UNAUTHORIZED);
     }
-
-    if (!compareSync(password, user.password)) {
-      throw new BadRequestsException(
-        "Incorrect Password",
-        ErrorCode.INCORRECT_PASSWORD
-      );
-    }
-
-    const token = jwt.sign(
-      {
-        userId: user.id,
-      },
-      JWT_SECRET
-    );
-
-    res.json({ user, token });
+    const refreshToken = cookies.jwt;
+    const { accessToken, role, id, name, email } =
+      await this.UserService.refresh(refreshToken);
+    res.json({ id, name, role, email, accessToken });
   };
 
   private currentUser = async (req: AuthenticatedRequest, res: Response) => {

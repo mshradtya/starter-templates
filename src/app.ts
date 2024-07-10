@@ -1,5 +1,4 @@
 import express, { Application } from "express";
-import mongoose from "mongoose";
 import prisma from "@/utils/prisma";
 import compression from "compression";
 import cors from "cors";
@@ -7,6 +6,7 @@ import morgan from "morgan";
 import Controller from "./utils/interfaces/controller.interface";
 import { errorMiddleware } from "./middleware/error.middleware";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 
 class App {
   public express: Application;
@@ -16,7 +16,6 @@ class App {
     this.express = express();
     this.port = port;
 
-    this.initialiseDatabaseConnection();
     this.initialiseMiddleware();
     this.initialiseControllers(controllers);
     this.initialiseErrorHandling();
@@ -29,6 +28,7 @@ class App {
     this.express.use(express.json());
     this.express.use(express.urlencoded({ extended: false }));
     this.express.use(compression());
+    this.express.use(cookieParser());
   }
 
   private initialiseControllers(controllers: Controller[]): void {
@@ -39,14 +39,6 @@ class App {
 
   private initialiseErrorHandling(): void {
     this.express.use(errorMiddleware);
-  }
-
-  private initialiseDatabaseConnection(): void {
-    // const { MONGO_USER, MONGO_PASSWORD, MONGO_PATH } = process.env;
-    // mongoose.connect(
-    //     `mongodb://${MONGO_USER}:${MONGO_PASSWORD}${MONGO_PATH}`
-    // );
-    // mongoose.connect("mongodb://localhost:27017", { dbName: "testdb" });
   }
 
   public listen(): void {
