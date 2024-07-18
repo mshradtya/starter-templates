@@ -10,7 +10,7 @@ import UserService from "./user.service";
 import { UnauthorizedException } from "@/utils/exceptions/unauthorized.exception";
 
 class UserController implements Controller {
-  public path = "/users";
+  public path = "/user";
   public router = Router();
   private UserService = new UserService();
 
@@ -63,7 +63,7 @@ class UserController implements Controller {
   ): Promise<Response | void> => {
     const { email, password } = req.body;
 
-    const { id, name, role, accessToken, refreshToken } =
+    const { _id, name, role, accessToken, refreshToken } =
       await this.UserService.loginUser(email, password);
 
     res.cookie("jwt", refreshToken, {
@@ -73,7 +73,7 @@ class UserController implements Controller {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return res.json({ id, name, role, accessToken });
+    return res.json({ _id, name, role, accessToken });
   };
 
   private refresh = async (

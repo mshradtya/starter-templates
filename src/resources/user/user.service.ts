@@ -1,4 +1,5 @@
-import prismaClient from "@/utils/prisma";
+import UserModel from "@/resources/user/user.model";
+import IUser from "@/resources/user/user.interface";
 import { NotFoundException } from "@/utils/exceptions/not-found.exception";
 import { BadRequestsException } from "@/utils/exceptions/bad-request.exception";
 import { ErrorCode } from "@/utils/exceptions/root";
@@ -7,9 +8,11 @@ import * as jwt from "jsonwebtoken";
 import { JwtPayload } from "jsonwebtoken";
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from "@/utils/secrets";
 import { UnauthorizedException } from "@/utils/exceptions/unauthorized.exception";
-import { Role, User } from "@prisma/client";
+import mongoose from "mongoose";
 
 class UserService {
+  private user = UserModel;
+
   /**
    * Register a new user
    */
@@ -17,9 +20,9 @@ class UserService {
     name: string,
     email: string,
     password: string,
-    role: Role
-  ): Promise<Partial<User>> {
-    let user = await prismaClient.user.findFirst({ where: { email } });
+    role: string
+  ): Promise<Partial<IUser>> {
+    let user = await this.user.findOne({ email });
     if (user) {
       throw new BadRequestsException(
         "User Already Exists",
@@ -27,12 +30,15 @@ class UserService {
       );
     }
 
-    user = await prismaClient.user.create({
-      data: { name, email, role, password: hashSync(password, 10) },
+    user = await this.user.create({
+      name,
+      email,
+      password: hashSync(password, 10),
+      role,
     });
 
     // Create a new object excluding the password
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: _, ...userWithoutPassword } = user.toObject();
 
     return userWithoutPassword;
   }
@@ -44,16 +50,17 @@ class UserService {
     email: string,
     password: string
   ): Promise<{
-    id: number;
+    _id: mongoose.ObjectId;
     name: string;
     role: string;
     accessToken: string;
     refreshToken: string;
   }> {
-    let user = await prismaClient.user.findFirst({ where: { email } });
+    let user = await this.user.findOne({ email });
     if (!user) {
       throw new NotFoundException("User Not Found", ErrorCode.USER_NOT_FOUND);
     }
+
     if (!compareSync(password, user.password)) {
       throw new BadRequestsException(
         "Incorrect Password",
@@ -63,7 +70,7 @@ class UserService {
     const accessToken = jwt.sign(
       {
         user: {
-          id: user.id,
+          _id: user._id,
           name: user.name,
           email: user.email,
           role: user.role,
@@ -78,7 +85,7 @@ class UserService {
     const refreshToken = jwt.sign(
       {
         user: {
-          id: user.id,
+          _id: user._id,
           name: user.name,
           email: user.email,
           role: user.role,
@@ -91,7 +98,7 @@ class UserService {
     );
 
     return {
-      id: user.id,
+      _id: user._id as mongoose.ObjectId,
       name: user.name,
       role: user.role,
       accessToken,
@@ -103,7 +110,7 @@ class UserService {
    * Get New Access Token
    */
   public async refresh(refreshToken: string): Promise<{
-    id: number;
+    id: mongoose.ObjectId;
     name: string;
     role: string;
     email: string;
@@ -130,7 +137,7 @@ class UserService {
         const { id } = jwtPayload.user;
 
         try {
-          const newUser = await prismaClient.user.findFirst({ where: { id } });
+          const newUser = await UserModel.findById(id);
 
           if (!newUser) {
             reject(

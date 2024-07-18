@@ -1,8 +1,8 @@
 import express, { Application } from "express";
-import prisma from "@/utils/prisma";
 import compression from "compression";
 import cors from "cors";
 import morgan from "morgan";
+import mongoose from "mongoose";
 import Controller from "./utils/interfaces/controller.interface";
 import { errorMiddleware } from "./middleware/error.middleware";
 import helmet from "helmet";
@@ -16,12 +16,13 @@ class App {
     this.express = express();
     this.port = port;
 
-    this.initialiseMiddleware();
-    this.initialiseControllers(controllers);
-    this.initialiseErrorHandling();
+    this.initializeMiddleware();
+    this.initializeControllers(controllers);
+    this.initializeErrorHandling();
+    this.initialiseDatabaseConnection();
   }
 
-  private initialiseMiddleware(): void {
+  private initializeMiddleware(): void {
     this.express.use(helmet());
     this.express.use(cors());
     this.express.use(morgan("dev"));
@@ -31,14 +32,26 @@ class App {
     this.express.use(cookieParser());
   }
 
-  private initialiseControllers(controllers: Controller[]): void {
+  private initializeControllers(controllers: Controller[]): void {
     controllers.forEach((controller: Controller) => {
       this.express.use("/api", controller.router);
     });
   }
 
-  private initialiseErrorHandling(): void {
+  private initializeErrorHandling(): void {
     this.express.use(errorMiddleware);
+  }
+
+  private initialiseDatabaseConnection(): void {
+    // const { MONGO_USER, MONGO_PASSWORD, MONGO_PATH } = process.env;
+
+    // mongoose.connect(
+    //     `mongodb://${MONGO_USER}:${MONGO_PASSWORD}${MONGO_PATH}`
+    // );
+
+    mongoose
+      .connect("mongodb://localhost:27017", { dbName: "testdb" })
+      .then(() => console.log("connected to db"));
   }
 
   public listen(): void {
