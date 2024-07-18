@@ -18,7 +18,7 @@ export const authMiddleware = async (
 
   try {
     const payload = jwt.verify(token, ACCESS_TOKEN_SECRET) as jwt.JwtPayload;
-    const user = await UserModel.findById(payload.id)
+    const user = await UserModel.findById(payload.user._id)
       .select("-password")
       .exec();
 

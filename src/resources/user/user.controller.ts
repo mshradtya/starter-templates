@@ -86,9 +86,9 @@ class UserController implements Controller {
       throw new UnauthorizedException("Unauthorized", ErrorCode.UNAUTHORIZED);
     }
     const refreshToken = cookies.jwt;
-    const { accessToken, role, id, name, email } =
+    const { accessToken, role, _id, name, email } =
       await this.UserService.refresh(refreshToken);
-    res.json({ id, name, role, email, accessToken });
+    res.json({ _id, name, role, email, accessToken });
   };
 
   private currentUser = async (req: AuthenticatedRequest, res: Response) => {

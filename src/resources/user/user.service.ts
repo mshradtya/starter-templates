@@ -110,7 +110,7 @@ class UserService {
    * Get New Access Token
    */
   public async refresh(refreshToken: string): Promise<{
-    id: mongoose.ObjectId;
+    _id: mongoose.ObjectId;
     name: string;
     role: string;
     email: string;
@@ -134,10 +134,10 @@ class UserService {
           return;
         }
 
-        const { id } = jwtPayload.user;
+        const { _id } = jwtPayload.user;
 
         try {
-          const newUser = await UserModel.findById(id);
+          const newUser = await UserModel.findById(_id);
 
           if (!newUser) {
             reject(
@@ -149,7 +149,7 @@ class UserService {
           const accessToken = jwt.sign(
             {
               user: {
-                id: newUser.id,
+                _id: newUser._id,
                 name: newUser.name,
                 email: newUser.email,
                 role: newUser.role,
@@ -162,7 +162,7 @@ class UserService {
           );
 
           resolve({
-            id: newUser.id,
+            _id: newUser._id as mongoose.ObjectId,
             name: newUser.name,
             role: newUser.role,
             email: newUser.email,
