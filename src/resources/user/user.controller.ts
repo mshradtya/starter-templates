@@ -81,6 +81,7 @@ class UserController implements Controller {
     res: Response
   ): Promise<Response | void> => {
     const cookies = req.cookies;
+    console.log(cookies);
     if (!cookies?.jwt) {
       throw new UnauthorizedException("Unauthorized", ErrorCode.UNAUTHORIZED);
     }

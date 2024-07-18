@@ -33,7 +33,7 @@ class UserService {
     user = await this.user.create({
       name,
       email,
-      password: hashSync(password, 10),
+      password,
       role,
     });
 
