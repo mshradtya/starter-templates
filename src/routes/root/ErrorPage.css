@@ -1,0 +1,24 @@
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+  font-family: Arial, sans-serif;
+  background-color: #f8f9fa;
+}
+
+.error-container h1 {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.error-container p {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.error-container i {
+  color: #dc3545; /* Bootstrap's danger color */
+}
