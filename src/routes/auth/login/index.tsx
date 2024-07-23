@@ -69,7 +69,7 @@ const LoginPage: React.FC = () => {
     <StyledLayout>
       <Content>
         <LoginContainer>
-          <Title level={2} style={{ textAlign: "center", marginBottom: 24 }}>
+          <Title level={3} style={{ textAlign: "center", marginBottom: 24 }}>
             Login
           </Title>
           <StyledForm
