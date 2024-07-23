@@ -1,5 +1,4 @@
-import UserModel from "@/resources/user/user.model";
-import IUser from "@/resources/user/user.interface";
+import prismaClient from "@/utils/prisma";
 import { NotFoundException } from "@/utils/exceptions/not-found.exception";
 import { BadRequestsException } from "@/utils/exceptions/bad-request.exception";
 import { ErrorCode } from "@/utils/exceptions/root";
@@ -8,11 +7,9 @@ import * as jwt from "jsonwebtoken";
 import { JwtPayload } from "jsonwebtoken";
 import { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } from "@/utils/secrets";
 import { UnauthorizedException } from "@/utils/exceptions/unauthorized.exception";
-import mongoose from "mongoose";
+import { Role, User } from "@prisma/client";
 
 class UserService {
-  private user = UserModel;
-
   /**
    * Register a new user
    */
@@ -20,9 +17,9 @@ class UserService {
     name: string,
     email: string,
     password: string,
-    role: string
-  ): Promise<Partial<IUser>> {
-    let user = await this.user.findOne({ email });
+    role: Role
+  ): Promise<Partial<User>> {
+    let user = await prismaClient.user.findFirst({ where: { email } });
     if (user) {
       throw new BadRequestsException(
         "User Already Exists",
@@ -30,15 +27,12 @@ class UserService {
       );
     }
 
-    user = await this.user.create({
-      name,
-      email,
-      password,
-      role,
+    user = await prismaClient.user.create({
+      data: { name, email, role, password: hashSync(password, 10) },
     });
 
     // Create a new object excluding the password
-    const { password: _, ...userWithoutPassword } = user.toObject();
+    const { password: _, ...userWithoutPassword } = user;
 
     return userWithoutPassword;
   }
@@ -50,17 +44,16 @@ class UserService {
     email: string,
     password: string
   ): Promise<{
-    _id: mongoose.ObjectId;
+    id: number;
     name: string;
     role: string;
     accessToken: string;
     refreshToken: string;
   }> {
-    let user = await this.user.findOne({ email });
+    let user = await prismaClient.user.findFirst({ where: { email } });
     if (!user) {
       throw new NotFoundException("User Not Found", ErrorCode.USER_NOT_FOUND);
     }
-
     if (!compareSync(password, user.password)) {
       throw new BadRequestsException(
         "Incorrect Password",
@@ -70,7 +63,7 @@ class UserService {
     const accessToken = jwt.sign(
       {
         user: {
-          _id: user._id,
+          id: user.id,
           name: user.name,
           email: user.email,
           role: user.role,
@@ -85,7 +78,7 @@ class UserService {
     const refreshToken = jwt.sign(
       {
         user: {
-          _id: user._id,
+          id: user.id,
           name: user.name,
           email: user.email,
           role: user.role,
@@ -98,7 +91,7 @@ class UserService {
     );
 
     return {
-      _id: user._id as mongoose.ObjectId,
+      id: user.id,
       name: user.name,
       role: user.role,
       accessToken,
@@ -110,7 +103,7 @@ class UserService {
    * Get New Access Token
    */
   public async refresh(refreshToken: string): Promise<{
-    _id: mongoose.ObjectId;
+    id: number;
     name: string;
     role: string;
     email: string;
@@ -134,10 +127,10 @@ class UserService {
           return;
         }
 
-        const { _id } = jwtPayload.user;
+        const { id } = jwtPayload.user;
 
         try {
-          const newUser = await UserModel.findById(_id);
+          const newUser = await prismaClient.user.findFirst({ where: { id } });
 
           if (!newUser) {
             reject(
@@ -149,7 +142,7 @@ class UserService {
           const accessToken = jwt.sign(
             {
               user: {
-                _id: newUser._id,
+                id: newUser.id,
                 name: newUser.name,
                 email: newUser.email,
                 role: newUser.role,
@@ -162,7 +155,7 @@ class UserService {
           );
 
           resolve({
-            _id: newUser._id as mongoose.ObjectId,
+            id: newUser.id,
             name: newUser.name,
             role: newUser.role,
             email: newUser.email,
