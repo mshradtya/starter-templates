@@ -1,15 +1,13 @@
 import React, { useState } from "react";
+import logo from "/logo.png";
+import logo2 from "/logo2.png";
+import useAuth from "@/hooks/auth/useAuth";
 
-import {
-  DesktopOutlined,
-  FileOutlined,
-  PieChartOutlined,
-  TeamOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
+import { DesktopOutlined, UserOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
-import { Layout, Menu, theme } from "antd";
+import { Layout, Menu, theme, Avatar } from "antd";
 const { Header, Content, Sider } = Layout;
+import { Link } from "react-router-dom";
 
 type MenuItem = Required<MenuProps>["items"][number];
 
@@ -27,19 +25,13 @@ function getItem(
   } as MenuItem;
 }
 
-const items: MenuItem[] = [
-  getItem("Option 1", "1", <PieChartOutlined />),
-  getItem("Option 2", "2", <DesktopOutlined />),
-  getItem("User", "sub1", <UserOutlined />, [
-    getItem("Tom", "3"),
-    getItem("Bill", "4"),
-    getItem("Alex", "5"),
-  ]),
-  getItem("Team", "sub2", <TeamOutlined />, [
-    getItem("Team 1", "6"),
-    getItem("Team 2", "8"),
-  ]),
-  getItem("Files", "9", <FileOutlined />),
+const userItems: MenuItem[] = [
+  getItem(<Link to="/">Dashboard</Link>, "1", <DesktopOutlined />),
+];
+
+const adminItems: MenuItem[] = [
+  getItem(<Link to="/">Dashboard</Link>, "1", <DesktopOutlined />),
+  getItem(<Link to="/users">Users</Link>, "2", <UserOutlined />),
 ];
 
 type LayoutProps = {
@@ -47,39 +39,78 @@ type LayoutProps = {
 };
 
 const LayoutComponent = ({ children }: LayoutProps): JSX.Element => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
   const [collapsed, setCollapsed] = useState(false);
   const {
-    token: { colorBgContainer, borderRadiusLG },
+    token: { colorBgContainer },
   } = theme.useToken();
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sider
+        theme="light"
         collapsible
         collapsed={collapsed}
         onCollapse={(value) => setCollapsed(value)}
       >
-        <div className="demo-logo-vertical" />
+        <div
+          className="logo-container"
+          style={{
+            height: collapsed ? "60px" : "80px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: collapsed ? "8px" : "16px",
+          }}
+        >
+          <img
+            src={collapsed ? logo2 : logo}
+            alt="Company Logo"
+            style={{
+              maxWidth: "100%",
+              maxHeight: "100%",
+              objectFit: "contain",
+              transition: "all 0.3s",
+            }}
+          />
+        </div>
         <Menu
-          theme="dark"
+          theme="light"
           defaultSelectedKeys={["1"]}
           mode="inline"
-          items={items}
+          items={isAdmin ? adminItems : userItems}
         />
       </Sider>
       <Layout>
-        <Header style={{ padding: 0, background: colorBgContainer }} />
-        <Content style={{ margin: "24px 16px 0" }}>
-          <div
+        <Header
+          style={{
+            padding: 0,
+            background: colorBgContainer,
+            boxShadow: "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div style={{ marginLeft: "16px" }}>People Tracking GPS</div>
+          <Avatar
             style={{
-              padding: 24,
-              minHeight: 360,
-              background: colorBgContainer,
-              borderRadius: borderRadiusLG,
+              marginRight: "16px",
+              background: "#eb2d42",
+              // boxShadow: "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
             }}
-          >
-            {children}
-          </div>
+            size={40}
+            icon={<UserOutlined />}
+            alt="User Avatar"
+          />
+        </Header>
+        <Content
+          style={{
+            margin: "24px 16px 0",
+          }}
+        >
+          {children}
         </Content>
       </Layout>
     </Layout>

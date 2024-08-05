@@ -8,6 +8,7 @@ import { authMiddleware } from "@/middleware/auth.middleware";
 import { errorHandler } from "@/utils/error-handler";
 import UserService from "./user.service";
 import { UnauthorizedException } from "@/utils/exceptions/unauthorized.exception";
+import { adminMiddleware } from "@/middleware/admin.middleware";
 
 class UserController implements Controller {
   public path = "/user";
@@ -37,6 +38,12 @@ class UserController implements Controller {
       `${this.path}/me`,
       [authMiddleware],
       errorHandler(this.currentUser)
+    );
+
+    this.router.get(
+      `${this.path}/all`,
+      [authMiddleware, adminMiddleware],
+      errorHandler(this.allUsers)
     );
   }
 
@@ -81,7 +88,7 @@ class UserController implements Controller {
     res: Response
   ): Promise<Response | void> => {
     const cookies = req.cookies;
-    console.log(cookies);
+
     if (!cookies?.jwt) {
       throw new UnauthorizedException("Unauthorized", ErrorCode.UNAUTHORIZED);
     }
@@ -93,6 +100,15 @@ class UserController implements Controller {
 
   private currentUser = async (req: AuthenticatedRequest, res: Response) => {
     res.json(req.user);
+  };
+
+  private allUsers = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    const allUsers = await this.UserService.allUsers();
+    res.json(allUsers);
   };
 }
 

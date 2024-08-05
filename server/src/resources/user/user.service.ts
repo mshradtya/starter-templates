@@ -174,6 +174,14 @@ class UserService {
       });
     });
   }
+
+  /**
+   * Get All Registered Users
+   */
+  public allUsers = async () => {
+    const allUsers = await this.user.find({}, "-password");
+    return allUsers;
+  };
 }
 
 export default UserService;
