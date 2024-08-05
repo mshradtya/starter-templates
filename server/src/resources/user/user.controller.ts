@@ -34,6 +34,8 @@ class UserController implements Controller {
 
     this.router.get(`${this.path}/refresh`, errorHandler(this.refresh));
 
+    this.router.post(`${this.path}/logout`, errorHandler(this.logoutUser));
+
     this.router.get(
       `${this.path}/me`,
       [authMiddleware],
@@ -96,6 +98,19 @@ class UserController implements Controller {
     const { accessToken, role, _id, name, email } =
       await this.UserService.refresh(refreshToken);
     res.json({ _id, name, role, email, accessToken });
+  };
+
+  private logoutUser = async (
+    req: Request,
+    res: Response
+  ): Promise<Response | void> => {
+    const cookies = req.cookies;
+
+    if (!cookies?.jwt) {
+      throw new UnauthorizedException("Unauthorized", ErrorCode.UNAUTHORIZED);
+    }
+    res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
+    res.json({ message: "Cookie cleared" });
   };
 
   private currentUser = async (req: AuthenticatedRequest, res: Response) => {

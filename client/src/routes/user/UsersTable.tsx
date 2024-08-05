@@ -85,10 +85,9 @@ const UsersTable: React.FC<UsersTableProps> = ({
         columns={columns}
         dataSource={data}
         loading={loading}
+        className="shadow-md rounded-md"
         style={{
           background: colorBgContainer,
-          boxShadow: "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
-          borderRadius: "10px",
         }}
       />
     </>

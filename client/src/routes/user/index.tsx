@@ -7,13 +7,7 @@ const Users: React.FC = () => {
 
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          marginBottom: "16px",
-        }}
-      >
+      <div className="flex justify-end mb-4">
         <RegisterUser fetchUsers={fetchUsers} />
       </div>
       <UsersTable users={users} loading={loading} onRefresh={fetchUsers} />

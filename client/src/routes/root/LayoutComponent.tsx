@@ -2,10 +2,15 @@ import React, { useState } from "react";
 import logo from "/logo.png";
 import logo2 from "/logo2.png";
 import useAuth from "@/hooks/auth/useAuth";
+import UserOptions from "./UserOptions";
 
-import { DesktopOutlined, UserOutlined } from "@ant-design/icons";
+import {
+  DesktopOutlined,
+  UserOutlined,
+  SettingOutlined,
+} from "@ant-design/icons";
 import type { MenuProps } from "antd";
-import { Layout, Menu, theme, Avatar } from "antd";
+import { Layout, Menu, theme } from "antd";
 const { Header, Content, Sider } = Layout;
 import { Link } from "react-router-dom";
 
@@ -31,7 +36,9 @@ const userItems: MenuItem[] = [
 
 const adminItems: MenuItem[] = [
   getItem(<Link to="/">Dashboard</Link>, "1", <DesktopOutlined />),
-  getItem(<Link to="/users">Users</Link>, "2", <UserOutlined />),
+  getItem("Admin", "sub1", <SettingOutlined />, [
+    getItem(<Link to="/users">Users</Link>, "2", <UserOutlined />),
+  ]),
 ];
 
 type LayoutProps = {
@@ -47,7 +54,7 @@ const LayoutComponent = ({ children }: LayoutProps): JSX.Element => {
   } = theme.useToken();
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout className="min-h-screen">
       <Sider
         theme="light"
         collapsible
@@ -55,25 +62,11 @@ const LayoutComponent = ({ children }: LayoutProps): JSX.Element => {
         onCollapse={(value) => setCollapsed(value)}
       >
         <div
-          className="logo-container"
-          style={{
-            height: collapsed ? "60px" : "80px",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: collapsed ? "8px" : "16px",
-          }}
+          className={`${
+            collapsed ? "h-16 p-2" : "h-20 p-4"
+          } flex justify-center items-center`}
         >
-          <img
-            src={collapsed ? logo2 : logo}
-            alt="Company Logo"
-            style={{
-              maxWidth: "100%",
-              maxHeight: "100%",
-              objectFit: "contain",
-              transition: "all 0.3s",
-            }}
-          />
+          <img src={collapsed ? logo2 : logo} alt="Company Logo" />
         </div>
         <Menu
           theme="light"
@@ -84,34 +77,15 @@ const LayoutComponent = ({ children }: LayoutProps): JSX.Element => {
       </Sider>
       <Layout>
         <Header
+          className="p-0 flex justify-between items-center shadow-md"
           style={{
-            padding: 0,
             background: colorBgContainer,
-            boxShadow: "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
           }}
         >
-          <div style={{ marginLeft: "16px" }}>People Tracking GPS</div>
-          <Avatar
-            style={{
-              marginRight: "16px",
-              background: "#eb2d42",
-              // boxShadow: "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
-            }}
-            size={40}
-            icon={<UserOutlined />}
-            alt="User Avatar"
-          />
+          <div className="ml-4">People Tracking GPS</div>
+          <UserOptions />
         </Header>
-        <Content
-          style={{
-            margin: "24px 16px 0",
-          }}
-        >
-          {children}
-        </Content>
+        <Content className="m-4">{children}</Content>
       </Layout>
     </Layout>
   );

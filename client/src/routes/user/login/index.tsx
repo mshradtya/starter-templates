@@ -2,40 +2,11 @@ import React, { useState } from "react";
 import { Form, Input, Button, Typography, Layout, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import styled from "styled-components";
 import useAuth from "@/hooks/auth/useAuth";
 import axios from "@/api/axios";
 
 const { Title } = Typography;
 const { Content } = Layout;
-
-const StyledLayout = styled(Layout)`
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #f0f2f5;
-`;
-
-const LoginContainer = styled.div`
-  width: 360px;
-  padding: 40px;
-  background: white;
-  border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-top: 100px;
-`;
-
-const StyledForm = styled(Form)`
-  .ant-form-item-control-input-content {
-    display: flex;
-    justify-content: space-between;
-  }
-`;
-
-const LoginButton = styled(Button)`
-  width: 100%;
-`;
 
 const LoginPage: React.FC = () => {
   const { setUser } = useAuth();
@@ -66,13 +37,14 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <StyledLayout>
+    <Layout className="min-h-screen flex justify-center items-center bg-slate-100">
       <Content>
-        <LoginContainer>
+        <div className="w-96 p-10 bg-white rounded-sm shadow-md mt-28">
           <Title level={3} style={{ textAlign: "center", marginBottom: 24 }}>
             Login
           </Title>
-          <StyledForm
+          <Form
+            className="flex flex-col justify-between"
             name="login_form"
             initialValues={{ remember: true }}
             onFinish={onFinish}
@@ -105,14 +77,19 @@ const LoginPage: React.FC = () => {
               />
             </Form.Item>
             <Form.Item>
-              <LoginButton type="primary" htmlType="submit" loading={loading}>
+              <Button
+                className="w-full"
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+              >
                 Log in
-              </LoginButton>
+              </Button>
             </Form.Item>
-          </StyledForm>
-        </LoginContainer>
+          </Form>
+        </div>
       </Content>
-    </StyledLayout>
+    </Layout>
   );
 };
 

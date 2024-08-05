@@ -80,10 +80,7 @@ const RegisterUser: React.FC<RegisterUserProps> = ({ fetchUsers }) => {
         confirmLoading={confirmLoading}
         onCancel={handleCancel}
       >
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-        >
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
           <Controller
             name="name"
             control={control}
@@ -92,7 +89,7 @@ const RegisterUser: React.FC<RegisterUserProps> = ({ fetchUsers }) => {
             )}
           />
           {errors.name && (
-            <span style={{ color: "red" }}>{errors.name.message}</span>
+            <span className="text-red-500">{errors.name.message}</span>
           )}
 
           <Controller
@@ -103,7 +100,7 @@ const RegisterUser: React.FC<RegisterUserProps> = ({ fetchUsers }) => {
             )}
           />
           {errors.email && (
-            <span style={{ color: "red" }}>{errors.email.message}</span>
+            <span className="text-red-500">{errors.email.message}</span>
           )}
 
           <Controller
@@ -114,7 +111,7 @@ const RegisterUser: React.FC<RegisterUserProps> = ({ fetchUsers }) => {
             )}
           />
           {errors.role && (
-            <span style={{ color: "red" }}>{errors.role.message}</span>
+            <span className="text-red-500">{errors.role.message}</span>
           )}
 
           <Controller
@@ -133,7 +130,7 @@ const RegisterUser: React.FC<RegisterUserProps> = ({ fetchUsers }) => {
             )}
           />
           {errors.password && (
-            <span style={{ color: "red" }}>{errors.password.message}</span>
+            <span className="text-red-500">{errors.password.message}</span>
           )}
         </form>
       </Modal>
